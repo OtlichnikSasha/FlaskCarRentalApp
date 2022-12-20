@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Новый клиент</title>
+    {% include "components/connection.html" %}
+</head>
+<body>
+{% include "components/sidebar.html" %}
+
+<div class="content">
+    <div class="container">
+
+        <div class="edit_place">
+            <h1>Новый клиент</h1>
+            <span class="mini_zag">Введите фамилию</span>
+            <input class="admin_input" placeholder="Бармаков"/>
+            <span class="mini_zag">Введите имя</span>
+            <input class="admin_input" placeholder="Глеб"/>
+            <span class="mini_zag">Введите номер ВУ *6 знаков</span>
+            <input class="admin_input t-t-u" placeholder="635970"/>
+            <span class="mini_zag">Введите год рождения</span>
+            <input class="admin_input" type="number" placeholder="1970"/>
+            <span class="mini_zag">Введите номер телефона</span>
+            <input class="admin_input t-t-u" id="phone" placeholder="+79005002070" />
+            <div class="def_btn m-t-10" id="save_btn">
+                Создать
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include "components/notification.html" %}
+<script>
+    let inp = document.getElementsByClassName("admin_input");
+
+    for(let i = 0; i < inp.length; i++){
+        inp[i].onfocus = function(){
+            inp[i].classList.remove("error");
+        }
+    }
+    save_btn.onclick = function(){
+        createClient();
+    }
+
+    function createClient(){
+        for(let i = 0; i < inp.length; i++){
+            let v = inp[i].value;
+            if(v.value === ''){
+                v.classList.add("error");
+            }
+        }
+        if(document.getElementsByClassName("error").length) return notification("Заполните все данные!", 1)
+        if (inp[2].value.length !== 6){
+            inp[2].classList.add("error");
+            return notification("Неверный формат водительского удостоверения", 1);
+        }
+        if (inp[3].value.length !== 4){
+            inp[3].classList.add("error");
+            return notification("Неверный формат года рождения", 1);
+        }
+        if (inp[4].value.length !== 18){
+            inp[4].classList.add("error");
+            return notification("Неверный формат номера телефона", 1);
+        }
+        let data = {
+            'surname': inp[0].value,
+            'name': inp[1].value,
+            'vu': Number(inp[2].value),
+            'birthday': Number(inp[3].value),
+            'phone': inp[4].value
+        }
+        console.log(data)
+        $.ajax({
+            url: '/api/client/create',
+            type: 'POST',
+            dataType: "json",
+            contentType: "application/json; charset=UTF-8",
+            data: JSON.stringify(data),
+            success: function (msg,status){
+                console.log(msg, status)
+                if(msg.status === 'ok') return notification("Клиент успешно добавлен", 2)
+                return notification(msg.message, 1)
+            }
+        })
+    }
+
+    maskPhone(phone);
+
+    /* Срабатывает на oninput, приводит номер телефона в нужный регистр */
+    function maskPhone(element) {
+        IMask(
+            element, {
+                mask: '+{7} (000) 000 00 00',
+                prepare: function (str) {
+                    return str.toUpperCase();
+                },
+            });
+    }
+</script>
+</body>
+</html>

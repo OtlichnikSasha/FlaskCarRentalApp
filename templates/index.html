@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Car Rental</title>
+    {% include "components/connection.html" %}
+</head>
+<body>
+{% include "components/sidebar.html" %}
+<div class="content">
+    <div class="container">
+        <div class="category_card">
+            <div class="fl j-c a-c">
+                Всего автомобилей: {{ auto_count }}
+            </div>
+        </div>
+        <div class="category_card">
+            <div class="fl j-c a-c">
+                Всего клиентов: {{ client_count }}
+            </div>
+        </div>
+        <div class="category_card">
+            <div class="fl j-c a-c">
+                Активных аренд: {{ hire_count }}
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>{{ auto.mark }} {{ auto.model }}</title>
+    {% include "components/connection.html" %}
+</head>
+<body>
+{% include "components/sidebar.html" %}
+
+<div class="content">
+    <div class="container">
+        <div class="edit_place">
+            <h1>{{ auto.mark }} {{ auto.model }}</h1>
+            <span class="mini_zag">Введите марку</span>
+            <input class="admin_input" value="{{ auto.mark }}" placeholder="Lada"/>
+            <span class="mini_zag">Введите модель</span>
+            <input class="admin_input" value="{{ auto.model }}" placeholder="Granta"/>
+            <span class="mini_zag">Введите vin номер *17 знаков</span>
+            <input class="admin_input t-t-u" value="{{ auto.vin }}" placeholder="XTA210990Y2766389"/>
+            <span class="mini_zag">Введите год выпуска</span>
+            <input class="admin_input"  value="{{ auto.issue_year }}" type="number" placeholder="2001"/>
+            <span class="mini_zag">Введите гос.номер</span>
+            <input class="admin_input t-t-u" value="{{ auto.gos_number }}" placeholder="О111ОО" />
+            <span class="mini_zag">Введите цвет</span>
+            <input class="admin_input" value="{{ auto.color }}" placeholder="Тёмно-зелёный"/>
+            <span class="mini_zag">Введите цену аренды</span>
+            <input class="admin_input" value="{{ auto.price }}" placeholder="1500"/>
+
+            <div class="def_btn m-t-10" id="save_btn">
+                Создать
+            </div>
+        </div>
+    </div>
+</div>
+
+{% include "components/notification.html" %}
+<script>
+    let inp = document.getElementsByClassName("admin_input");
+
+    for(let i = 0; i < inp.length; i++){
+        inp[i].onfocus = function(){
+            inp[i].classList.remove("error");
+        }
+    }
+    save_btn.onclick = function(){
+        editAuto();
+    }
+
+    function editAuto(){
+        for(let i = 0; i < inp.length; i++){
+            let v = inp[i].value;
+            if(v.value === ''){
+                v.classList.add("error");
+            }
+        }
+        if(document.getElementsByClassName("error").length) return notification("Заполните все данные!", 1)
+        if (inp[2].value.length !== 17){
+            inp[2].classList.add("error");
+            return notification("Неверный формат vin номера", 1);
+        }
+        if (inp[3].value.length !== 4){
+            inp[3].classList.add("error");
+            return notification("Неверный формат года выпуска", 1);
+        }
+        if (inp[4].value.length !== 6){
+            inp[4].classList.add("error");
+            return notification("Неверный формат гос номера", 1);
+        }
+        let data = {
+            'id': {{ auto.id }},
+            'mark': inp[0].value,
+            'model': inp[1].value,
+            'vin': inp[2].value,
+            'issue_year': Number(inp[3].value),
+            'gos_number': inp[4].value,
+            'color': inp[5].value,
+            'price': inp[6].value
+        }
+        console.log(data)
+        $.ajax({
+            url: '/api/auto/edit',
+            type: 'POST',
+            dataType: "json",
+            contentType: "application/json; charset=UTF-8",
+            data: JSON.stringify(data),
+            success: function (msg,status){
+                console.log(msg, status)
+                if(msg.status === 'ok') return notification("Данные успешно изменены", 2)
+                return notification(msg.message, 1)
+            }
+        })
+    }
+</script>
+</body>
+</html>

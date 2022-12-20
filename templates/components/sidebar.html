@@ -1,0 +1,36 @@
+<sidebar class="sidebar">
+    <div class="sidebar_place">
+        <a href="/" class="logo">
+            Car Rental
+        </a>
+        <div class="link_item">
+            <a class="nav-link" href="/automobiles">
+                Автомобили
+            </a>
+        </div>
+        <div class="link_item">
+            <a class="nav-link" href="/clients">
+                Клиенты
+            </a>
+        </div>
+        <div class="link_item">
+            <a class="nav-link" href="/hires">
+                Аренды
+            </a>
+        </div>
+    </div>
+</sidebar>
+
+
+<script>
+    activeAnchor();
+
+    function activeAnchor() {
+        let hrefs = document.getElementsByClassName('nav-link');
+        for (let i = 0; i < hrefs.length; i++) {
+            if (hrefs[i].href === location.href) {
+                return hrefs[i].classList.add('_active');
+            }
+        }
+    }
+</script>

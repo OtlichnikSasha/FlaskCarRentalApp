@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Автомобили</title>
+    {% include "components/connection.html" %}
+</head>
+<body>
+{% include "components/sidebar.html" %}
+
+<div class="content">
+    <div class="container">
+        <a class="def_btn" href="/createAuto">
+            Новый автомобиль
+        </a>
+        <div class="sorted_place">
+            <div class="mini_zag">Поиск по марке, модели и вин номеру</div>
+            <div class="fl j-s-b a-c">
+                <div class="w-65 p-r-15">
+                    <input placeholder="Поиск" class="admin_input" id="search_inp"/>
+                </div>
+                <div class="search_btn" id="search_btn">
+                    Найти
+                </div>
+            </div>
+        </div>
+
+        <div class="fl a-c">
+            <div class="w-10 t-c">#</div>
+            <div class="w-20 t-c">М/М</div>
+            <div class="w-20 t-c">Год выпуска</div>
+            <div class="w-10 t-c">Цена аренды</div>
+        </div>
+
+
+        <div id="auto_place" class="backend_place">
+            {% for auto in automobiles %}
+                <div class="fl a-c">
+                    <div class="w-10 t-c">{{ auto.id }}</div>
+                    <div class="w-20 t-c">{{ auto.mark }} {{ auto.model }}</div>
+                    <div class="w-20 t-c">{{ auto.issue_year }}</div>
+                    <div class="w-10 t-c">{{ auto.price }} ₽</div>
+                    <div class="w-20 t-c p-r-15">
+                        <a class="admin_btn" href="/auto/{{ auto.id }}">Посмотреть</a>
+                    </div>
+                    <div class="w-20">
+                        <div class="admin_btn remove" onclick="removeAuto({{ auto.id }})">Удалить</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination_place" id="pagination_place">
+            {% for i in range(1, page_count + 1, 1) %}
+                {% if i == page %}
+                    <div class="pagination_item _active">
+                        <a class="pagination_num" href="/automobiles/{{ i }}">{{ i }}</a>
+                    </div>
+                {% else %}
+                    <div class="pagination_item">
+                        <a class="pagination_num" href="/automobiles/{{ i }}">{{ i }}</a>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+
+    </div>
+</div>
+{% include "components/notification.html" %}
+<script>
+    function removeAuto(id) {
+        let data = {
+            'id': id
+        }
+        $.ajax({
+            url: '/api/auto/remove',
+            type: "GET",
+            data: data,
+            success: function (msg) {
+                if (msg.status === 'ok') return getAuto();
+                return notification(msg.message, 1)
+            }
+        })
+    }
+
+    function getAuto() {
+        $.ajax({
+            url: '/api/auto/get_all',
+            type: "GET",
+            success: function (msg) {
+                console.log(msg)
+                if (msg.status === 'ok') return drawAuto(msg.message.auto, msg.message.page_count)
+                return notification(msg.message, 1);
+            }
+        })
+    }
+
+    function drawAuto(automobiles, page_count = 0) {
+        console.log(page_count)
+        auto_place.innerHTML = '';
+        automobiles.map((auto) => {
+            auto_place.innerHTML +=
+                `
+            <div class="fl a-c">
+                    <div class="w-10 t-c">${auto.id}</div>
+                    <div class="w-20 t-c">${auto.mark} ${auto.model}</div>
+                    <div class="w-20 t-c">${auto.issue_year}</div>
+                    <div class="w-10 t-c">${auto.price} ₽</div>
+                    <div class="w-20 t-c p-r-15">
+                        <a class="admin_btn" href="/auto/${auto.id}">Посмотреть</a>
+                    </div>
+                    <div class="w-20">
+                        <div class="admin_btn remove" onclick="removeAuto(${auto.id})">Удалить</div>
+                    </div>
+                </div>
+            `
+            if (page_count !== 0) {
+                pagination_place.innerHTML = '';
+                for (let i = 1; i < page_count + 1; i++) {
+                    if (i === 1) {
+                        pagination_place.innerHTML +=
+                            `
+                      <div class="pagination_item _active">
+                        <a class="pagination_num" href="/automobiles/${i}">${i}</a>
+                    </div>
+                    `
+                    } else {
+                        pagination_place.innerHTML +=
+                            `
+                    <div class="pagination_item">
+                        <a class="pagination_num" href="/automobiles/${i}">${i}</a>
+                    </div>
+                    `
+                    }
+                }
+            }
+        })
+    }
+
+    search_btn.onclick = function () {
+        searchAuto()
+    }
+
+    function searchAuto() {
+        let data = {
+            'name': search_inp.value
+        }
+        $.ajax({
+            url: '/api/auto/search',
+            type: "GET",
+            data: data,
+            success: function (msg) {
+                console.log(msg)
+                if (msg.status === 'ok') return drawAuto(msg.message.auto)
+                return notification(msg.message, 1);
+            }
+        })
+    }
+
+</script>
+</body>
+</html>

@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Клиенты</title>
+    {% include "components/connection.html" %}
+</head>
+<body>
+{% include "components/sidebar.html" %}
+<div class="content">
+    <div class="container">
+        <a class="def_btn" href="/createClient">
+            Новый клиент
+        </a>
+        <div class="sorted_place">
+            <div class="mini_zag">Поиск по фамилии, имени и ВУ</div>
+            <div class="fl j-s-b a-c">
+                <div class="w-65 p-r-15">
+                    <input placeholder="Поиск" class="admin_input" id="search_inp"/>
+                </div>
+                <div class="search_btn" id="search_btn">
+                    Найти
+                </div>
+            </div>
+        </div>
+
+        <div class="fl a-c">
+            <div class="w-10 t-c">#</div>
+            <div class="w-20 t-c">ФИ</div>
+            <div class="w-10 t-c">Год рождения</div>
+            <div class="w-20 t-c">Номер телефона</div>
+        </div>
+
+
+        <div id="clients_place" class="backend_place">
+            {% for client in clients %}
+                <div class="fl a-c">
+                    <div class="w-10 t-c">{{ client.id }}</div>
+                    <div class="w-20 t-c">{{ client.surname }} {{ client.name }}</div>
+                    <div class="w-10 t-c">{{ client.birthday }}</div>
+                    <div class="w-20 t-c">+7{{ client.phone }}</div>
+                    <div class="w-20 t-c p-r-15">
+                        <a class="admin_btn" href="/client/{{ client.id }}">Посмотреть</a>
+                    </div>
+                    <div class="w-20">
+                        <div class="admin_btn remove" onclick="removeClient({{ client.id }})">Удалить</div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination_place" id="pagination_place">
+            {% for i in range(1, page_count + 1, 1) %}
+                {% if i == page %}
+                    <div class="pagination_item _active">
+                        <a class="pagination_num" href="/clients/{{ i }}">{{ i }}</a>
+                    </div>
+                {% else %}
+                    <div class="pagination_item">
+                        <a class="pagination_num" href="/clients/{{ i }}">{{ i }}</a>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+
+    </div>
+</div>
+{% include "components/notification.html" %}
+<script>
+    function removeClient(id) {
+        let data = {
+            'id': id,
+        }
+        $.ajax({
+            url: '/api/client/remove',
+            type: "GET",
+            data: data,
+            success: function (msg) {
+                if (msg.status === 'ok') return getClients()
+                return notification(msg.message, 1)
+            }
+        })
+    }
+
+    function getClients() {
+        let data = {
+            'page': {{ page }}
+        }
+        $.ajax({
+            url: '/api/clients/get_all',
+            type: "GET",
+            data: data,
+            success: function (msg) {
+                console.log(msg);
+                if (msg.status === 'ok') return drawClients(msg.message.clients, msg.message.page_count, Number({{ page }}))
+                return notification(msg.message, 1)
+            }
+        })
+    }
+
+    function drawClients(clients, page_count = 0, page=1) {
+        clients_place.innerHTML = '';
+        clients.map((client) => {
+            clients_place.innerHTML +=
+                `
+                <div class="fl a-c">
+                    <div class="w-10 t-c">${client.id}</div>
+                    <div class="w-20 t-c">${client.surname} ${client.name}</div>
+                    <div class="w-10 t-c">${client.birthday}</div>
+                    <div class="w-20 t-c">+7${client.phone}</div>
+                    <div class="w-20 t-c p-r-15">
+                        <a class="admin_btn" href="/client/${client.id}">Посмотреть</a>
+                    </div>
+                    <div class="w-20">
+                        <div class="admin_btn remove" onclick="removeClient(${client.id})">Удалить</div>
+                    </div>
+
+                `
+        })
+
+        if (page_count !== 0) {
+            pagination_place.innerHTML = '';
+            for (let i = 1; i < page_count + 1; i++) {
+                if (i === page) {
+                    pagination_place.innerHTML +=
+                        `
+                      <div class="pagination_item _active">
+                        <a class="pagination_num" href="/clients/${i}">${i}</a>
+                    </div>
+                    `
+                } else {
+                    pagination_place.innerHTML +=
+                        `
+                    <div class="pagination_item">
+                        <a class="pagination_num" href="/clients/${i}">${i}</a>
+                    </div>
+                    `
+                }
+            }
+        }
+    }
+
+
+    search_btn.onclick = function () {
+        searchClients()
+    }
+
+    function searchClients() {
+        let data = {
+            'name': search_inp.value
+        }
+        $.ajax({
+            url: '/api/client/search',
+            type: "GET",
+            data: data,
+            success: function (msg) {
+                console.log(msg)
+                if (msg.status === 'ok') return drawClients(msg.message.clients)
+                return notification(msg.message, 1);
+            }
+        })
+    }
+
+
+</script>
+</body>
+</html>

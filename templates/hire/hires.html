@@ -1,0 +1,79 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Аренды</title>
+    {% include "components/connection.html" %}
+</head>
+<body>
+{% include "components/sidebar.html" %}
+
+<div class="content">
+    <div class="container">
+        <a class="def_btn" href="/createHire">
+            Новая аренда
+        </a>
+
+        <div class="fl a-c" style="margin-top: 25px;">
+            <div class="w-5 t-c">#</div>
+            <div class="w-20 t-c">Автомобиль</div>
+            <div class="w-20 t-c">Клиент</div>
+            <div class="w-15 t-c">Дата начала</div>
+            <div class="w-15 t-c">Дата окончания</div>
+            <div class="w-10 t-c">Цена</div>
+        </div>
+
+
+        <div id="hires_place" class="backend_place">
+            {% for hire in hires %}
+                <div class="fl a-c">
+                    <div class="w-5 t-c">{{ hire.id }}</div>
+                    <div class="w-20 t-c">{{ hire.auto.mark }} {{ hire.auto.model }} </div>
+                    <div class="w-20 t-c">{{ hire.client.surname }} {{ hire.client.name }}</div>
+                    <div class="w-15 t-c">{{ hire.start_date }}</div>
+                    <div class="w-15 t-c">{{ hire.end_date }}</div>
+                    <div class="w-10 t-c">{{ hire.price }} ₽</div>
+                    <div class="w-20">
+                        <div class="admin_btn remove" onclick="removeHire({{ hire.id }})">
+                            Закончить поездку
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="pagination_place" id="pagination_place">
+            {% for i in range(1, page_count + 1, 1) %}
+                {% if i == page %}
+                    <div class="pagination_item _active">
+                        <a class="pagination_num" href="/hires/{{ i }}">{{ i }}</a>
+                    </div>
+                {% else %}
+                    <div class="pagination_item">
+                        <a class="pagination_num" href="/hires/{{ i }}">{{ i }}</a>
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+    </div>
+</div>
+<script>
+    function removeHire(id) {
+        let data = {
+            'id': id
+        }
+        $.ajax({
+            url: '/api/hire/remove',
+            type: "GET",
+            data: data,
+            success: function (msg) {
+                if(msg.status === 'ok') return location.reload()
+                return notification(msg.message, 1)
+            }
+        })
+
+    }
+</script>
+</body>
+</html>

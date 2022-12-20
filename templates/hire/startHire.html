@@ -1,0 +1,312 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Начать аренду</title>
+    {% include "components/connection.html" %}
+</head>
+<body>
+{% include "components/sidebar.html" %}
+<div class="content">
+    <div class="container">
+        <div class="fl">
+            <div class="auto_place">
+                <h2 class="mini_zag">Автомобили не в аренде</h2>
+                <div class="sorted_place">
+                    <div class="mini_zag">Поиск по марке, модели и вин номеру</div>
+                    <div class="fl j-s-b a-c">
+                        <div class="w-65 p-r-15">
+                            <input placeholder="Поиск" class="admin_input" id="search_car"/>
+                        </div>
+                        <div class="search_btn" id="search_car_btn">
+                            Найти
+                        </div>
+                    </div>
+                </div>
+                <div class="fl a-c">
+                    <div class="w-10 t-c">#</div>
+                    <div class="w-30 t-c">М/М</div>
+                    <div class="w-20 t-c">Год выпуска</div>
+                    <div class="w-20 t-c">Цена аренды</div>
+                </div>
+
+                <div id="auto_place" class="backend_place">
+                    {% for auto in automobiles %}
+                        <div class="fl a-c">
+                            <div class="w-10 t-c">{{ auto.id }}</div>
+                            <div class="w-30 t-c">{{ auto.mark }} {{ auto.model }}</div>
+                            <div class="w-20 t-c">{{ auto.issue_year }}</div>
+                            <div class="w-20 t-c">{{ auto.price }} ₽</div>
+                            <div class="w-20 t-c">
+                                <input type="checkbox" class="checkbox_inp_auto" value="{{ auto.id }}"/>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+            <div class="clients_place">
+                <h2 class="mini_zag">Клиенты</h2>
+                <div class="sorted_place">
+                    <div class="mini_zag">Поиск по фамилии, имени и ВУ</div>
+                    <div class="fl j-s-b a-c">
+                        <div class="w-65 p-r-15">
+                            <input placeholder="Поиск" class="admin_input" id="search_client"/>
+                        </div>
+                        <div class="search_btn" id="search_client_btn">
+                            Найти
+                        </div>
+                    </div>
+                </div>
+                <div class="fl a-c">
+                    <div class="w-10 t-c">#</div>
+                    <div class="w-30 t-c">ФИ</div>
+                    <div class="w-30 t-c">Год рождения</div>
+                    <div class="w-20 t-c">Номер телефона</div>
+                </div>
+
+
+                <div id="clients_place" class="backend_place">
+                    {% for client in clients %}
+                        <div class="fl a-c">
+                            <div class="w-10 t-c">{{ client.id }}</div>
+                            <div class="w-30 t-c">{{ client.surname }} {{ client.name }}</div>
+                            <div class="w-30 t-c">{{ client.birthday }}</div>
+                            <div class="w-20 t-c">+7{{ client.phone }}</div>
+                            <div class="w-10 t-c">
+                                <input type="checkbox" class="checkbox_inp_client" value="{{ client.id }}"/>
+                            </div>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        <div class="sorted_place">
+            <div class="fl a-c j-s-b">
+                <div>
+                    <div class="mini_zag">
+                        Выберите дату и время начала:
+                    </div>
+                    <input type="date" id="start_date"/>
+                    <input type="time" id="time_start"/>
+                </div>
+                <div>
+                    <div class="mini_zag">
+                        Выберите дату и время окончания:
+                    </div>
+                    <input type="date" id="date"/>
+                    <input type="time" id="time"/>
+                </div>
+            </div>
+        </div>
+        <div class="fl j-c a-c" style="margin-top: 25px;">
+            <div class="admin_btn" id="count_price" style="width: 300px;cursor: pointer">
+                Посчитать стоимость
+            </div>
+        </div>
+        <div class="mini_zag" id="final_price"></div>
+        <div class="fl j-c a-c" style="margin-top: 25px;">
+            <div class="def_btn" id="start_hire">
+                Начать аренду
+            </div>
+        </div>
+    </div>
+</div>
+{% include "components/notification.html" %}
+<script>
+    let car = 0;
+    let client = 0;
+    let checkbox_client = document.getElementsByClassName("checkbox_inp_client");
+    let checkbox_auto = document.getElementsByClassName("checkbox_inp_auto");
+    let price = 0;
+    let day_1 = new Date();
+    console.log(day_1)
+
+    for (let i = 0; i < checkbox_client.length; i++) {
+        let cc = checkbox_client[i];
+        cc.onchange = function () {
+            if (cc.checked) {
+                client = Number(cc.value);
+                for (let i = 0; i < checkbox_client.length; i++) {
+                    if (checkbox_client[i].checked) {
+                        checkbox_client[i].checked = false;
+                    }
+                }
+                cc.checked = true;
+            } else {
+                client = 0;
+            }
+        }
+    }
+
+    for (let i = 0; i < checkbox_auto.length; i++) {
+        let ca = checkbox_auto[i];
+        ca.onchange = function () {
+            if (ca.checked) {
+                car = Number(ca.value);
+                for (let i = 0; i < checkbox_auto.length; i++) {
+                    if (checkbox_auto[i].checked) {
+                        checkbox_auto[i].checked = false;
+                    }
+                }
+                ca.checked = true;
+            } else {
+                car = 0;
+            }
+        }
+    }
+    count_price.onclick = function () {
+        countPrice()
+    }
+
+    function countPrice() {
+        if (car === 0) return notification("Выберите автомобиль для аренды", 1);
+        if (client === 0) return notification("Выберите клиента для аренды", 1);
+        if (date.value === '' || time.value === '') return notification("Укажите дату и время окончания аренды!", 1);
+        if (start_date.value === '' || time_start.value === '') return notification("Укажите дату и время начала аренды!", 1);
+        let da = {
+            'id': car
+        }
+        $.ajax({
+            url: '/api/auto/get_by_id',
+            type: "GET",
+            async: false,
+            data: da,
+            success: function (msg) {
+                price = msg.message.auto.price;
+            }
+        })
+        let count_days = diffDates(date.value, start_date.value)
+        if (count_days === 'uncorrectly') return notification("Начальная дата больше конечной!", 1);
+        price = count_days * price;
+        final_price.innerText = price + ' ₽';
+    }
+
+    start_hire.onclick = function () {
+        startHire()
+    }
+
+    function startHire() {
+        if (car === 0) return notification("Выберите автомобиль для аренды", 1);
+        if (client === 0) return notification("Выберите клиента для аренды", 1);
+        if (date.value === '' || time.value === '') return notification("Укажите дату и время окончания аренды!", 1);
+        if (start_date.value === '' || time_start.value === '') return notification("Укажите дату и время начала аренды!", 1);
+        let data = {
+            'auto_id': car,
+            'client_id': client,
+            'price': price,
+            'end_date': date.value + ' ' + time.value + ':00',
+            'start_date': start_date.value + ' ' + time_start.value + ':00'
+        }
+        $.ajax({
+            url: '/api/hire/create',
+            type: "GET",
+            data: data,
+            success: function (msg) {
+                console.log(msg);
+                if (msg.status === 'ok') {
+                    setTimeout(() => {
+                        location.reload();
+                    }, 600)
+                    return notification("Аренда успешно создана!", 2)
+                }
+                return notification(msg.message, 1)
+            }
+        })
+    }
+
+    // Поиск машин
+    search_car_btn.onclick = function () {
+        searchAuto()
+    }
+
+    function searchAuto() {
+        let data = {
+            'name': search_car.value,
+        }
+        $.ajax({
+            url: '/api/auto/search_for_hire',
+            type: "GET",
+            data: data,
+            success: function (msg) {
+                console.log(msg)
+                if (msg.status === 'ok') return drawAuto(msg.message.auto)
+                return notification(msg.message, 1);
+            }
+        })
+    }
+
+    function diffDates(end_date, start_date) {
+        let end_day = Number(end_date.slice(end_date.length - 2));
+        let end_month_with_day = end_date.slice(end_date.length - 5)
+        let end_month = Number(end_month_with_day.substr(0, 2))
+        let start_day = Number(start_date.slice(start_date.length - 2));
+        let start_month_with_day = start_date.slice(start_date.length - 5)
+        let start_month = Number(start_month_with_day.substr(0, 2))
+        if (end_month === start_month && start_day > end_day) return ('uncorrectly')
+        if (end_month === start_month && start_day < end_day) return (end_day - start_day);
+        if (end_month > start_month) return (30 - start_day + end_day)
+    }
+
+
+    function drawAuto(automobiles) {
+        auto_place.innerHTML = ''
+        if (!automobiles.length) return auto_place.innerText = 'Ничего не найдено!'
+        automobiles.map((auto) => {
+            auto_place.innerHTML +=
+                `
+                        <div class="fl a-c">
+                            <div class="w-10 t-c">${auto.id}</div>
+                            <div class="w-30 t-c">${auto.mark} ${auto.model}</div>
+                            <div class="w-20 t-c">${auto.issue_year}</div>
+                            <div class="w-20 t-c">${auto.price} ₽</div>
+                            <div class="w-20 t-c">
+                                <input type="checkbox" class="checkbox_inp_auto" value="${auto.id}"/>
+                            </div>
+                        </div>
+              `
+        })
+    }
+
+    // Поиск клиентов
+    search_client_btn.onclick = function () {
+        searchClients()
+    }
+
+    function searchClients() {
+        let data = {
+            'name': search_client.value
+        }
+        $.ajax({
+            url: '/api/client/search',
+            type: "GET",
+            data: data,
+            success: function (msg) {
+                console.log(msg)
+                if (msg.status === 'ok') return drawClients(msg.message.clients)
+                return notification(msg.message, 1);
+            }
+        })
+    }
+
+    function drawClients(clients) {
+        clients_place.innerHTML = ''
+        if (!clients.length) return clients_place.innerText = 'Ничего не найдено!'
+        clients.map((client) => {
+            clients_place.innerHTML +=
+                `
+                <div class="fl a-c">
+                            <div class="w-10 t-c">${client.id}</div>
+                            <div class="w-30 t-c">${client.surname} ${client.name}</div>
+                            <div class="w-30 t-c">${client.birthday}</div>
+                            <div class="w-20 t-c">+7${client.phone}</div>
+                            <div class="w-10 t-c">
+                                <input type="checkbox" class="checkbox_inp_client" value="${client.id}"/>
+                            </div>
+                        </div>
+                `
+        })
+    }
+
+</script>
+</body>
+</html>
