@@ -1,0 +1,9 @@
+/.idea
+
+/.node-modules
+/.venv
+.venv
+.venvus
+/.venvus
+.env
+.env.development
